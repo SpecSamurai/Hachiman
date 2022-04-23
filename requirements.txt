@@ -1,0 +1,11 @@
+black==22.3.0
+arcade==2.6.10
+attrs==21.4.0
+cffi==1.15.0
+numpy==1.22.2
+Pillow==9.0.1
+pycparser==2.21
+pyglet==2.0.dev13
+pymunk==6.2.1
+pytiled-parser==2.0.1
+typing_extensions==4.1.1
