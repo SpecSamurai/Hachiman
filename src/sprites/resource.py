@@ -13,3 +13,4 @@ class Resource(arcade.SpriteCircle):
         self.center_x = center_x
         self.center_y = center_y
         self.alpha = Resource.RESOURCE_ALPHA
+        self.drones_count = 0
