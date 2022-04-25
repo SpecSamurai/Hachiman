@@ -6,9 +6,9 @@ from ai.utility_system.actions.baseaction import BaseAction
 from sprites.unit import Unit
 
 
-class AttackFactory(BaseAction):
+class AttackFactoryAction(BaseAction):
     def __init__(self) -> None:
-        super().__init__(AttackFactory.__name__)
+        super().__init__(AttackFactoryAction.__name__)
 
     def run_script(self, worldstate: worldstate.WorldState) -> None:
         unit: Unit = next(
