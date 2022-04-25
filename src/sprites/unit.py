@@ -31,7 +31,6 @@ class Unit(arcade.Sprite):
         self.health: float = Unit.UNIT_BASE_HEALTH
 
         self.is_moving: bool = False
-        self.is_attacking: bool = False
         self.status = Unit.IDLE
 
         self.target: Unit = None
@@ -61,8 +60,8 @@ class Unit(arcade.Sprite):
         self.change_y = math.sin(angle) * Unit.UNIT_SPEED
         self.is_moving = True
 
-    def move_to_target(self, target: arcade.Sprite) -> None:
-        self.target = target
+    def gather_resources(self, resource: arcade.Sprite) -> None:
+        self.target = resource
         self.is_moving = True
         self.status = Unit.DRONE
 
@@ -81,7 +80,7 @@ class Unit(arcade.Sprite):
 
     def attack(self, target: arcade.Sprite) -> None:
         self.target = target
-        self.is_attacking = True
+        self.status = Unit.COMBAT
 
     def reached_position(self) -> bool:
         ACCEPTABLE_DISTANCE_FROM_TARGET = 10
@@ -97,12 +96,12 @@ class Unit(arcade.Sprite):
 
         if target != None:
             distance = arcade.get_distance_between_sprites(self, self.target)
-            return self.is_attacking and distance <= Unit.ATTACK_RANGE
+            return self.status == Unit.COMBAT and distance <= Unit.ATTACK_RANGE
         else:
             return False
 
     def update(self):
-        if self.is_attacking:
+        if self.status == Unit.COMBAT:
             if not self.ready_to_attack():
                 self.move(self.target.center_x, self.target.center_y)
             else:
@@ -111,7 +110,7 @@ class Unit(arcade.Sprite):
             if self.target.is_destroyed():
                 self.stop()
                 self.target = None
-                self.is_attacking = False
+                self.status = Unit.IDLE
             else:
                 self.point_at_target()
 
