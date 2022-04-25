@@ -12,7 +12,7 @@ class Unit(arcade.Sprite):
     UNITS_SCALE = 0.5
     UNIT_SPEED = 4.0
     UNIT_BASE_HEALTH = 100.0
-    ATTACK_RANGE = 200.0
+    ATTACK_RANGE = 150.0
     ROOT_DIR = os.path.abspath(os.curdir)
     RED_UNIT_SPRITE_NAME = f"{ROOT_DIR}/assets/unit_red.png"
     GREEN_UNIT_SPRITE_NAME = f"{ROOT_DIR}/assets/unit_green.png"
