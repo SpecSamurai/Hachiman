@@ -16,7 +16,7 @@ class Actor:
         self.configuration = configuration
 
         self.factory = Factory(
-            name + "main_base",
+            f"{name}_{Factory.__name__}",
             self.configuration.building_sprite,
             *self.configuration.position,
         )
@@ -27,7 +27,7 @@ class Actor:
         self.enemies_in_sight = []
 
     def replan(self, worldstate: worldstate.WorldState) -> None:
-        self.plan = Planner().find_action_with_highest_score(worldstate)
+        self.plan = self.planner.find_action_with_highest_score(worldstate)
 
     def does_plan_exist(self) -> None:
         return self.plan != None
