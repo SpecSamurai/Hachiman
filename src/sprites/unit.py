@@ -15,7 +15,7 @@ class Unit(arcade.Sprite):
     ATTACK_RANGE = 200.0
     ROOT_DIR = os.path.abspath(os.curdir)
     RED_UNIT_SPRITE_NAME = f"{ROOT_DIR}/assets/unit_red.png"
-    BLUE_UNIT_SPRITE_NAME = f"{ROOT_DIR}/assets/unit_blue.png"
+    GREEN_UNIT_SPRITE_NAME = f"{ROOT_DIR}/assets/unit_green.png"
 
     def __init__(
         self, name: str, filename: str = None, center_x: float = 0, center_y: float = 0

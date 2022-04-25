@@ -8,7 +8,7 @@ from sprites.unit import Unit
 
 
 class Factory(arcade.SpriteSolidColor):
-    BLUE_BUILDING_COLOR_RGB = (52, 209, 191)
+    GREEN_BUILDING_COLOR_RGB = (12, 206, 106)
     RED_BUILDING_COLOR_RGB = (209, 52, 91)
 
     BUILDING_RADIUS = 70
