@@ -3,24 +3,21 @@ from random import random
 import arcade
 import math
 import random
+from game_configuration import FACTORY_BASE_HEALTH
 
 from sprites.unit import Unit
 
 
 class Factory(arcade.SpriteSolidColor):
-    GREEN_BUILDING_COLOR_RGB = (12, 206, 106)
-    RED_BUILDING_COLOR_RGB = (209, 52, 91)
-
-    BUILDING_RADIUS = 70
+    SPRITE_SIDE = 35
     ROTATION_SPEED = 0.3
-    BUILDING_BASE_HEALTH = 1000
 
     def __init__(
         self, name: str, color, center_x: float = 0, center_y: float = 0
     ) -> None:
-        super().__init__(Factory.BUILDING_RADIUS, Factory.BUILDING_RADIUS, color=color)
+        super().__init__(Factory.SPRITE_SIDE, Factory.SPRITE_SIDE, color=color)
         self.name = name
-        self.health = Factory.BUILDING_BASE_HEALTH
+        self.health = FACTORY_BASE_HEALTH
 
         self.center_x = center_x
         self.center_y = center_y
