@@ -91,23 +91,17 @@ class GameWindow(arcade.Window):
     def on_update(self, delta_time):
         self.buildings.update_animation()
 
+        red_actor_state = WorldState(self.red_actor, self.green_actor, self.resources)
         if self.red_actor.does_plan_exist():
-            self.red_actor.perform_plan(
-                WorldState(self.red_actor, self.green_actor, self.resources)
-            )
+            self.red_actor.perform_plan(red_actor_state)
         else:
-            self.red_actor.replan(
-                WorldState(self.red_actor, self.green_actor, self.resources)
-            )
+            self.red_actor.replan(red_actor_state)
 
+        green_actor_state = WorldState(self.green_actor, self.red_actor, self.resources)
         if self.green_actor.does_plan_exist():
-            self.green_actor.perform_plan(
-                WorldState(self.green_actor, self.red_actor, self.resources)
-            ),
+            self.green_actor.perform_plan(green_actor_state)
         else:
-            self.green_actor.replan(
-                WorldState(self.green_actor, self.red_actor, self.resources)
-            )
+            self.green_actor.replan(green_actor_state)
 
         self.update_units()
         self.update_projectiles()
