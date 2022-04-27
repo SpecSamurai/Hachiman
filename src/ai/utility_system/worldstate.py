@@ -1,6 +1,6 @@
 import arcade
 from actor import Actor
-from sprites.unit import Unit
+from game_configuration import ATTACK_RANGE
 
 
 class WorldState:
@@ -9,7 +9,7 @@ class WorldState:
         for unit in actor.units:
             for enemy_unit in enemy.units:
                 distance = arcade.get_distance_between_sprites(unit, enemy_unit)
-                if distance < Unit.ATTACK_RANGE:
+                if distance < ATTACK_RANGE:
                     actor.enemies_in_sight.append(enemy_unit)
 
         self.actor: Actor = actor
