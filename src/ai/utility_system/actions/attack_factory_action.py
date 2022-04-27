@@ -20,6 +20,6 @@ class AttackFactoryAction(BaseAction):
 
     def get_score(self, worldstate: worldstate.WorldState) -> int:
         if len(worldstate.actor.units) >= 2 * len(worldstate.enemy.units):
-            return 5 + len(worldstate.actor.units) - len(worldstate.enemy.units)
+            return 5 + len(worldstate.actor.units) - 2 * len(worldstate.actor.enemies_in_sight)
         else:
             return 0
