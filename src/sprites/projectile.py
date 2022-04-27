@@ -7,10 +7,11 @@ from sprites.unit import Unit
 
 class Projectile(arcade.SpriteCircle):
     PROJECTILE_COLOR_RGB = (255, 197, 37)
-    PROJECTILE_RADIUS = 3
+    PROJECTILE_RADIUS = 2
     PROJECTILE_SPEED = 8
+    PROJECTILE_DAMAGE = 50
 
-    LIFE_SPAN = 30
+    LIFE_SPAN = 25
 
     def __init__(self, unit: Unit, team: Actor) -> None:
         super().__init__(
@@ -39,4 +40,4 @@ class Projectile(arcade.SpriteCircle):
         super().update()
 
     def is_frame_valid(frame: int) -> bool:
-        return frame % 60 == 0
+        return frame % 30 == 0
