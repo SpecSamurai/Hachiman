@@ -2,6 +2,7 @@ from __future__ import annotations
 import ai.utility_system.worldstate as worldstate
 
 from ai.utility_system.actions.baseaction import BaseAction
+from game_configuration import UNIT_BUILD_COST
 from sprites.unit import Unit
 
 
@@ -16,7 +17,7 @@ class BuildAction(BaseAction):
                 new_unit_name, worldstate.actor.configuration.unit_sprite
             )
             worldstate.actor.units.append(new_unit)
-            worldstate.actor.resources -= Unit.UNIT_BUILD_COST
+            worldstate.actor.resources -= UNIT_BUILD_COST
 
     def get_score(self, worldstate: worldstate.WorldState) -> int:
         idle_units = len(
