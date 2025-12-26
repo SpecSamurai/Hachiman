@@ -5,6 +5,7 @@ from torch.autograd import grad
 from typing import override
 from torch.utils.data import Dataset, DataLoader
 from typing import Any
+from selfAttention import CasualAttention, MultiHeadAttention
 
 print(f'PyTorch Version: {torch.__version__}')
 print(f'CUDA Support: {torch.cuda.is_available()}')
@@ -163,7 +164,7 @@ print(f'CUDA Support: {torch.cuda.is_available()}')
 #
 # print(output)
 #
-# torch.set_printoptions(sci_mode=False)
+torch.set_printoptions(sci_mode=False)
 # probas = torch.softmax(output, dim=1)
 # print(probas)
 
@@ -177,3 +178,15 @@ print(integers)
 
 strings = tokenizer.decode(integers)
 print(strings)
+
+inputs = torch.Tensor([[1, 2, 3], [4, 5, 6],[1, 2, 3], [4, 5, 6],[1, 2, 3], [4, 5, 6]])
+
+batch = torch.stack((inputs, inputs), dim=0)
+print(batch.shape)
+
+casualAttention = MultiHeadAttention(3, 2, 6, 0.5, 2)
+context_vecs = casualAttention(batch)
+
+print(context_vecs)
+print("context_vecs.shape:", context_vecs.shape)
+
