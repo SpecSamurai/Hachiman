@@ -1,11 +1,29 @@
 import torch
-import torch.nn.functional as F
+# import torch.nn.functional as F
 import tiktoken
-from torch.autograd import grad
-from typing import override
-from torch.utils.data import Dataset, DataLoader
-from typing import Any
-from selfAttention import CasualAttention, MultiHeadAttention
+# from torch.autograd import grad
+# from typing import override
+# from torch.utils.data import Dataset, DataLoader
+# from typing import Any
+from .selfAttention import MultiHeadAttention
+
+VOCAB_SIZE_STR: str = 'vocab_size'
+CONTEXT_LENGTH_STR: str = 'context_length'
+EMB_DIM_STR: str = 'emb_did'
+N_HEADS_STR: str = 'n_heads'
+N_LAYERS_STR: str = 'n_layers'
+DROP_RATE_STR: str = 'drop_rate'
+QKV_BIAS_STR: str = 'qkv_bias'
+
+GPT_CONFIG_124M = {
+    VOCAB_SIZE_STR: 50257,
+    CONTEXT_LENGTH_STR: 1024,
+    EMB_DIM_STR: 768,
+    N_HEADS_STR: 12,
+    N_LAYERS_STR: 12,
+    DROP_RATE_STR: 0.1,
+    QKV_BIAS_STR: False,
+}
 
 print(f'PyTorch Version: {torch.__version__}')
 print(f'CUDA Support: {torch.cuda.is_available()}')
@@ -171,7 +189,7 @@ torch.set_printoptions(sci_mode=False)
 tokenizer = tiktoken.get_encoding('gpt2')
 text = (
     "Hello, do you like tea? <|endoftext|> In the sunlit terraces"
-    "of someunknownPlace. asdasdas"
+        "of someunknownPlace. asdasdas"
 )
 integers = tokenizer.encode(text, allowed_special={"<|endoftext|>"})
 print(integers)
