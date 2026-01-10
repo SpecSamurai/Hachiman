@@ -1,4 +1,5 @@
 import torch
+import matplotlib.pyplot as plt
 # import torch.nn.functional as F
 import tiktoken
 # from torch.autograd import grad
@@ -6,10 +7,11 @@ import tiktoken
 # from torch.utils.data import Dataset, DataLoader
 # from typing import Any
 from .selfAttention import MultiHeadAttention
+from .gptModel import GPTModel, LayerNorm, GELU, FeedForward
 
 VOCAB_SIZE_STR: str = 'vocab_size'
 CONTEXT_LENGTH_STR: str = 'context_length'
-EMB_DIM_STR: str = 'emb_did'
+EMB_DIM_STR: str = 'emb_dim'
 N_HEADS_STR: str = 'n_heads'
 N_LAYERS_STR: str = 'n_layers'
 DROP_RATE_STR: str = 'drop_rate'
@@ -182,29 +184,75 @@ print(f'CUDA Support: {torch.cuda.is_available()}')
 #
 # print(output)
 #
+# torch.set_printoptions(sci_mode=False)
+# # probas = torch.softmax(output, dim=1)
+# # print(probas)
+#
+# tokenizer = tiktoken.get_encoding('gpt2')
+#
+# text = (
+#     "Hello, do you like tea? <|endoftext|> In the sunlit terraces"
+#         "of someunknownPlace. asdasdas"
+# )
+# integers = tokenizer.encode(text, allowed_special={"<|endoftext|>"})
+# print(integers)
+#
+# strings = tokenizer.decode(integers)
+# print(strings)
+#
+# inputs = torch.Tensor([[1, 2, 3], [4, 5, 6],[1, 2, 3], [4, 5, 6],[1, 2, 3], [4, 5, 6]])
+#
+# batch = torch.stack((inputs, inputs), dim=0)
+# print(batch.shape)
+#
+# casualAttention = MultiHeadAttention(3, 2, 6, 0.5, 2)
+# context_vecs = casualAttention(batch)
+#
+# print(context_vecs)
+# print("context_vecs.shape:", context_vecs.shape)
+
 torch.set_printoptions(sci_mode=False)
-# probas = torch.softmax(output, dim=1)
-# print(probas)
-
 tokenizer = tiktoken.get_encoding('gpt2')
-text = (
-    "Hello, do you like tea? <|endoftext|> In the sunlit terraces"
-        "of someunknownPlace. asdasdas"
-)
-integers = tokenizer.encode(text, allowed_special={"<|endoftext|>"})
-print(integers)
+batch = []
+txt1 = "Every effort moves you"
+txt2 = "Every day holds a"
+batch.append(torch.tensor(tokenizer.encode(txt1)))
+batch.append(torch.tensor(tokenizer.encode(txt2)))
+batch = torch.stack(batch, dim=0)
+print(batch)
 
-strings = tokenizer.decode(integers)
-print(strings)
+torch.manual_seed(123)
+model = GPTModel(GPT_CONFIG_124M)
+logits = model(batch)
+print(logits.shape)
+print(logits)
 
-inputs = torch.Tensor([[1, 2, 3], [4, 5, 6],[1, 2, 3], [4, 5, 6],[1, 2, 3], [4, 5, 6]])
+ln = LayerNorm(5)
+batch_e = torch.randn(2, 5)
+out_ln = ln(batch_e)
+mean = out_ln.mean(dim=-1, keepdim=True)
+var = out_ln.var(dim=-1, keepdim=True, unbiased=False)
+print(mean)
+print(var)
 
-batch = torch.stack((inputs, inputs), dim=0)
-print(batch.shape)
+gelu, relu = GELU(), torch.nn.ReLU()
+x = torch.linspace(-3, 3, 100)
+y_gelu, y_relu = gelu(x), relu(x)
+plt.figure(figsize=(8, 3))
 
-casualAttention = MultiHeadAttention(3, 2, 6, 0.5, 2)
-context_vecs = casualAttention(batch)
+for i, (y, label) in enumerate(zip([y_gelu, y_relu], ["GELU", "ReLU"]), 1):
+    plt.subplot(1, 2, i)
+    plt.plot(x, y)
+    plt.title(f"{label} activation function")
+    plt.xlabel("x")
+    plt.ylabel(f"{label}(x)")
+    plt.grid(True)
 
-print(context_vecs)
-print("context_vecs.shape:", context_vecs.shape)
+plt.tight_layout()
+plt.savefig('plot.png')
+plt.close()
 
+ffn = FeedForward(GPT_CONFIG_124M)
+x = torch.rand(2, 3, 768)
+out = ffn(x)
+print(out.shape)
