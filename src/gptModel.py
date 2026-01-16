@@ -1,12 +1,20 @@
+from typing import override
 import torch
+
+from typing_extensions import Any
+from .selfAttention import MultiHeadAttention
+from .activations import GELU
+from .norms import LayerNorm
 
 class GPTModel(torch.nn.Module):
     tok_emb: torch.nn.Embedding
     pos_emb: torch.nn.Embedding
     drop_emb: torch.nn.Dropout
     trf_blocks: torch.nn.Sequential
+    final_norm: LayerNorm
+    out_head: torch.nn.Linear
 
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: dict[Any, Any]) -> None:
         super().__init__()
         self.tok_emb = torch.nn.Embedding(cfg['vocab_size'], cfg['emb_dim'])
         self.pos_emb = torch.nn.Embedding(cfg['context_length'], cfg['emb_dim'])
@@ -19,7 +27,8 @@ class GPTModel(torch.nn.Module):
             cfg['emb_dim'], cfg['vocab_size'], bias=False
         )
 
-    def forward(self, in_idx):
+    @override
+    def forward(self, in_idx: torch.Tensor):
         batch_size, seq_len = in_idx.shape
         tok_embeds = self.tok_emb(in_idx)
         pos_embeds = self.pos_emb(
@@ -34,41 +43,10 @@ class GPTModel(torch.nn.Module):
         logits = self.out_head(x)
         return logits
 
-class TransformerBlock(torch.nn.Module):
-    def __init__(self, cfg):
-        super().__init__()
-
-    def forward(self, x):
-        return x
-
-class LayerNorm(torch.nn.Module):
-    def __init__(self, emb_dim):
-        super().__init__()
-        self.eps = 1e-5
-        self.scale = torch.nn.Parameter(torch.ones(emb_dim))
-        self.shift = torch.nn.Parameter(torch.zeros(emb_dim))
-
-    def forward(self, x):
-        mean = x.mean(dim=-1, keepdim=True)
-        var = x.var(dim=-1, keepdim=True, unbiased=False)
-
-        norm_x = (x - mean) / torch.sqrt(var + self.eps) # eps prevents division by zero
-
-        return self.scale * norm_x + self.shift
-
-class GELU(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x):
-        return 0.5 * x * (
-            1 + torch.tanh(
-                torch.sqrt(torch.tensor(2.0 / torch.pi)) * 
-                (x + 0.044715 * torch.pow(x, 3))
-            ))
-
 class FeedForward(torch.nn.Module):
-    def __init__(self, cfg):
+    layers: torch.nn.Sequential
+
+    def __init__(self, cfg: dict[Any, Any]):
         super().__init__()
         self.layers = torch.nn.Sequential(
             torch.nn.Linear(cfg['emb_dim'], 4 * cfg['emb_dim']),
@@ -76,6 +54,47 @@ class FeedForward(torch.nn.Module):
             torch.nn.Linear(4 * cfg['emb_dim'], cfg['emb_dim']),
         )
 
-    def forward(self, x):
+    @override
+    def forward(self, x: torch.Tensor):
         return self.layers(x)
+
+class TransformerBlock(torch.nn.Module):
+    mha: MultiHeadAttention
+    norm1: LayerNorm
+    norm2: LayerNorm
+    ff: FeedForward
+    drop_shortcut: torch.nn.Dropout
+    
+    def __init__(self, cfg: dict[Any, Any]):
+        super().__init__()
+        self.mha = MultiHeadAttention(
+            d_in=cfg['emb_dim'],
+            d_out=cfg['emb_dim'],
+            context_length=cfg['context_length'],
+            dropout=cfg['drop_rate'],
+            num_heads=cfg['n_heads'],
+            qkv_bias=cfg['qkv_bias']
+        )
+
+        self.ff = FeedForward(cfg)
+        self.norm1 = LayerNorm(cfg['emb_dim'])
+        self.norm2 = LayerNorm(cfg['emb_dim'])
+        self.drop_shortcut = torch.nn.Dropout(cfg['drop_rate'])
+
+    @override
+    def forward(self, x: torch.Tensor):
+
+        shortcut = x
+        x = self.norm1(x)
+        x = self.mha(x)
+        x = self.drop_shortcut(x)
+        x = x + shortcut
+
+        shortcut = x
+        x = self.norm2(x)
+        x = self.ff(x)
+        x = self.drop_shortcut(x)
+        x = x + shortcut
+
+        return x
 

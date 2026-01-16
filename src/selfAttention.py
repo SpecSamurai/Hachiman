@@ -47,7 +47,6 @@ class SelfAttentionV2(torch.nn.Module):
     #     contextVector = attentionWeights @ values
     #     return contextVector
 
-
 class CasualAttention(torch.nn.Module):
     queryW: torch.nn.Linear
     keyW: torch.nn.Linear
@@ -93,7 +92,7 @@ class CasualAttention(torch.nn.Module):
 
         attentionWeights = self.dropout(attentionWeights)
 
-        print(attentionWeights)
+        # print(attentionWeights)
 
         contextVector = attentionWeights @ values
         return contextVector
@@ -136,17 +135,17 @@ class MultiHeadAttention(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         b, num_tokens, d_in = x.shape
         keys = self.W_key(x)
-        print(keys)
+        # print(keys)
         queries = self.W_query(x)
         values = self.W_value(x)
 
         keys = keys.view(b, num_tokens, self.num_heads, self.head_dim)
-        print(keys)
+        # print(keys)
         queries = queries.view(b, num_tokens, self.num_heads, self.head_dim)
         values = values.view(b, num_tokens, self.num_heads, self.head_dim)
 
         keys = keys.transpose(1, 2)
-        print(keys)
+        # print(keys)
         queries = queries.transpose(1, 2)
         values = values.transpose(1, 2)
 
