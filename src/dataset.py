@@ -17,13 +17,14 @@ class GPTDatasetV1(Dataset[Any]):
         self.targetIds = []
 
         tokenIds = tokenizer.encode(text)
+        print('Tokens\n', len(tokenIds))
 
         for i in range(0, len(tokenIds) - maxLength, stride):
             inputChunk = tokenIds[i:i + maxLength]
             targetChunk = tokenIds[i + 1:i + maxLength + 1]
 
-            self.inputIds.append(torch.Tensor(inputChunk))
-            self.targetIds.append(torch.Tensor(targetChunk))
+            self.inputIds.append(torch.tensor(inputChunk))
+            self.targetIds.append(torch.tensor(targetChunk))
 
         print('Created Dataset')
 
@@ -62,5 +63,6 @@ def loadTestDocu() -> str:
         raw_text = f.read()
 
     print('Loaded test document')
+    print('Characters ', len(raw_text))
 
     return raw_text
