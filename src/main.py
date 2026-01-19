@@ -23,6 +23,10 @@ GPT_CONFIG_124M = {
     QKV_BIAS_STR: False,
 }
 
+def softmax_with_temperatur(logits: torch.Tensor, temperature: float):
+    scaled_logits = logits / temperature
+    return torch.softmax(scaled_logits, dim=0)
+
 def text_to_ids(text: str, tokenizer: tiktoken.Encoding):
     encoded_text = tokenizer.encode(text, allowed_special={'<|endoftext|>'})
     encoded_tensor = torch.tensor(encoded_text).unsqueeze(0)
@@ -46,6 +50,35 @@ def generate_text(model: GPTModel, idx: torch.Tensor, max_new_tokens: int, conte
         idx_next = torch.argmax(probs, dim=-1, keepdim=True)
         idx = torch.cat((idx, idx_next), dim=1)
 
+    return idx
+
+def generate(model: GPTModel, idx: torch.Tensor, max_new_tokens: int, context_size: int, temperature:float = 0.0, topK = None, eos_id = None):
+    for _ in range(max_new_tokens):
+        idx_cond = idx[:, -context_size:]
+        with torch.no_grad():
+            logits = model(idx_cond)
+        logits = logits[:, -1, :]
+
+        if topK is not None:
+            top_logits, _ = torch.topk(logits, k=topK)
+            min_val = top_logits[:, -1]
+            logits = torch.where(
+                condition=logits < min_val,
+                input=torch.tensor(float('-inf')).to(logits.device),
+                other=logits
+            )
+
+        if temperature > 0.0:
+            logits = logits / temperature
+            probas = torch.softmax(logits, dim=1)
+            idx_next = torch.multinomial(probas, num_samples=1)
+        else:
+            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+
+        if idx_cond == eos_id:
+            break
+
+        idx = torch.cat((idx, idx_next), dim=1)
     return idx
 
 def calc_loss_batch(input_batch: torch.Tensor, target_batch: torch.Tensor, model: GPTModel, device):
@@ -212,3 +245,40 @@ train_losses, validate_losses, tokens_seen = train_model(
     num_epochs=num_epochs, eval_freq=5, eval_iter=5, 
     start_context='Every effort moves you', tokenizer=tokenizer
 )
+
+model.eval()
+torch.manual_seed(123)
+token_ids = generate(
+    model=model,
+    idx=text_to_ids("Every effort moves you", tokenizer),
+    max_new_tokens=25,
+    context_size=GPT_CONFIG_124M[CONTEXT_LENGTH_STR],
+    topK=25,
+    temperature=1.4
+)
+
+print("Output text:\n", ids_to_text(token_ids, tokenizer))
+
+torch.save({
+    'model_state_dict': model.state_dict(),
+    'optimizer_state_dict': optimizer.state_dict()
+}, 'model_and_optimizer.pth')
+
+checkpoint = torch.load('model_and_optimizer.pth', map_location=device)
+model = GPTModel(GPT_CONFIG_124M)
+model.load_state_dict(checkpoint['model_state_dict'])
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+model.train()
+
+model.eval()
+
+token_ids = generate(
+    model=model,
+    idx=text_to_ids("Every effort moves you", tokenizer),
+    max_new_tokens=25,
+    context_size=GPT_CONFIG_124M[CONTEXT_LENGTH_STR],
+    topK=25,
+    temperature=1.4
+)
+print("Output text:\n", ids_to_text(token_ids, tokenizer))
