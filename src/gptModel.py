@@ -59,7 +59,7 @@ class FeedForward(torch.nn.Module):
         return self.layers(x)
 
 class TransformerBlock(torch.nn.Module):
-    mha: MultiHeadAttention
+    att: MultiHeadAttention
     norm1: LayerNorm
     norm2: LayerNorm
     ff: FeedForward
@@ -67,7 +67,7 @@ class TransformerBlock(torch.nn.Module):
     
     def __init__(self, cfg: dict[Any, Any]):
         super().__init__()
-        self.mha = MultiHeadAttention(
+        self.att = MultiHeadAttention(
             d_in=cfg['emb_dim'],
             d_out=cfg['emb_dim'],
             context_length=cfg['context_length'],
@@ -86,7 +86,7 @@ class TransformerBlock(torch.nn.Module):
 
         shortcut = x
         x = self.norm1(x)
-        x = self.mha(x)
+        x = self.att(x)
         x = self.drop_shortcut(x)
         x = x + shortcut
 

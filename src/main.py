@@ -1,9 +1,9 @@
-from typing import Any
-import torch
 import tiktoken
+import torch
 
 from .gptModel import GPTModel
 from .dataset import createDataLoaderV1, loadTestDocu
+from .print import generate, generate_text, text_to_ids, ids_to_text
 
 VOCAB_SIZE_STR: str = 'vocab_size'
 CONTEXT_LENGTH_STR: str = 'context_length'
@@ -15,7 +15,7 @@ QKV_BIAS_STR: str = 'qkv_bias'
 
 GPT_CONFIG_124M = {
     VOCAB_SIZE_STR: 50257,
-    CONTEXT_LENGTH_STR: 256, #1024,
+    CONTEXT_LENGTH_STR: 1024,
     EMB_DIM_STR: 768,
     N_HEADS_STR: 12,
     N_LAYERS_STR: 12,
@@ -26,60 +26,6 @@ GPT_CONFIG_124M = {
 def softmax_with_temperatur(logits: torch.Tensor, temperature: float):
     scaled_logits = logits / temperature
     return torch.softmax(scaled_logits, dim=0)
-
-def text_to_ids(text: str, tokenizer: tiktoken.Encoding):
-    encoded_text = tokenizer.encode(text, allowed_special={'<|endoftext|>'})
-    encoded_tensor = torch.tensor(encoded_text).unsqueeze(0)
-    return encoded_tensor
-
-def ids_to_text(idx: torch.Tensor, tokenizer: tiktoken.Encoding):
-    print('ids_to_text')
-    print(' ids Type: ', type(idx))
-    print(' IDS shape:', idx.shape)
-    flat = idx.squeeze(0)
-    return tokenizer.decode(flat.tolist())
-
-def generate_text(model: GPTModel, idx: torch.Tensor, max_new_tokens: int, context_size: Any):
-    for _ in range(max_new_tokens):
-        idx_cond = idx[:, -context_size:]
-        with torch.no_grad():
-            logits = model(idx_cond)
-
-        logits = logits[:, -1, :]
-        probs = torch.softmax(logits, dim=-1)
-        idx_next = torch.argmax(probs, dim=-1, keepdim=True)
-        idx = torch.cat((idx, idx_next), dim=1)
-
-    return idx
-
-def generate(model: GPTModel, idx: torch.Tensor, max_new_tokens: int, context_size: int, temperature:float = 0.0, topK = None, eos_id = None):
-    for _ in range(max_new_tokens):
-        idx_cond = idx[:, -context_size:]
-        with torch.no_grad():
-            logits = model(idx_cond)
-        logits = logits[:, -1, :]
-
-        if topK is not None:
-            top_logits, _ = torch.topk(logits, k=topK)
-            min_val = top_logits[:, -1]
-            logits = torch.where(
-                condition=logits < min_val,
-                input=torch.tensor(float('-inf')).to(logits.device),
-                other=logits
-            )
-
-        if temperature > 0.0:
-            logits = logits / temperature
-            probas = torch.softmax(logits, dim=1)
-            idx_next = torch.multinomial(probas, num_samples=1)
-        else:
-            idx_next = torch.argmax(logits, dim=-1, keepdim=True)
-
-        if idx_cond == eos_id:
-            break
-
-        idx = torch.cat((idx, idx_next), dim=1)
-    return idx
 
 def calc_loss_batch(input_batch: torch.Tensor, target_batch: torch.Tensor, model: GPTModel, device):
     input_batch = input_batch.to(device)
@@ -282,3 +228,5 @@ token_ids = generate(
     temperature=1.4
 )
 print("Output text:\n", ids_to_text(token_ids, tokenizer))
+
+
